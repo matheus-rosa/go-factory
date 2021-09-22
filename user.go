@@ -1,0 +1,7 @@
+package go_factory
+
+type User struct {
+	ID    int
+	Name  string
+	Email string
+}
