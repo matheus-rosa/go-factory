@@ -10,9 +10,13 @@ func TestUser(t *testing.T) {
 		BaseFactory: FactoryRegisterer,
 	})
 
-	user := factory.Create("user", Fields{
-		"name": "matheus",
-	}).(*User)
+	fields := Fields{
+		"name":      "matheus",
+		"account":   Fields{"name": "first account"},
+		"userGroup": Fields{"name": "that user group"},
+	}
 
+	user := factory.Create("user", fields).(*User)
 	fmt.Println(user)
+
 }
