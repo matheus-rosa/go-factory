@@ -1,6 +1,7 @@
 package go_factory
 
 import (
+	"gorm.io/gorm"
 	"reflect"
 )
 
@@ -11,7 +12,7 @@ type Factory struct {
 
 type Options struct {
 	BaseFactory func() map[string]interface{}
-	// gorm *DB
+	gorm        *gorm.DB
 }
 
 func NewFactory(opts *Options) *Factory {
@@ -28,4 +29,10 @@ func (f Factory) Create(model string, fields Fields) interface{} {
 	res := fun.Call(in)
 
 	return res[0].Interface()
+}
+
+func (f Factory) Insert(model string, fields Fields) interface{} {
+	m := f.Create(model, fields)
+
+	return f.opts.gorm.Create(m).Error
 }
