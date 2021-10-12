@@ -4,8 +4,15 @@ import "time"
 
 type Fields map[string]interface{}
 
-func (f *Factory) GetField(fieldName string) Fields {
-	return f.get(fieldName, Fields{}).(Fields)
+func (f *Factory) GetField(fieldName string) []Fields {
+	fields := f.get(fieldName, []Fields{})
+
+	switch fields.(type) {
+	case Fields:
+		return []Fields{fields.(Fields)}
+	default:
+		return fields.([]Fields)
+	}
 }
 
 func (f *Factory) Bool(fieldName string, defaultValue bool) bool {
