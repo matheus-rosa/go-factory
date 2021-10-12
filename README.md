@@ -115,6 +115,8 @@ It's very unlikely you're only dealing with models without associations.
 So let's assume our `User` we defined before have one or more `Account`:
 
 ```go
+package main
+
 type User struct {
     ID        int
     Name      string
@@ -131,40 +133,54 @@ type Account struct {
 And then a little refactor on our `BaseFactory`:
 
 ```go
+package main
+
 import goFactory "github.com/matheus-rosa/go-factory"
 
-goFactory.NewFactory(&goFactory.Options{
-	// gorm.DB is optional if you don't want to insert records on database
-	Gorm: gorm.DB,
-	BaseFactory: function() map[string]interface{} {
-		return map[string]interface{}{
-			"user": function(factory goFactory.Factory) *User {
-				return &User{
-					Name:  factory.String("name", "default name"), 
-					Email: factory.String("email", "mail@mail.com"),
-					Accounts: []*Account{
-						factory.Create("account", factory.GetField("account")).(*Account),
+func main() {
+	goFactory.NewFactory(&goFactory.Options{
+		// gorm.DB is optional if you don't want to insert records on database 
+		Gorm: gorm.DB, 
+		BaseFactory: function() map[string]interface{} {
+			return map[string]interface{}{
+				"user": function(factory goFactory.Factory) *User {
+					accountData := factory.GetField("account")
+					accounts := make([]*Account, len(accountData))
+					factory.CreateN("account", &accounts, accountData...)					
+					
+					return &User{
+						Name:  factory.String("name", "default name"), 
+						Email: factory.String("email", "mail@mail.com"), 
+						Accounts: accounts,
+					}
+				}, 
+				"account": function(factory goFactory.Factory) *Accounts {
+					return &Accounts{
+						Name: factory.String("name", "default account name"),
 					}
 				}
-			},
-			"account": function(factory goFactory.Factory) *Accounts {
-				return &Accounts{
-					Name: factory.String("name", "default account name"),
-				}
 			}
-		}
-	},
-})
+		},
+	})
+}
 ```
 
 For now on you can use like:
 
 ```go
-goFactory.Create("user", goFactory.Fields{
-	"name": "John Doe",
-	"email": "johndoe@email.com",
-	"account": goFactory.Fields{
-		"name": "some account name",
-	},
-}).(*User)
+package main
+
+import goFactory "github.com/matheus-rosa/go-factory"
+
+func main()  {
+	goFactory.Create("user", goFactory.Fields{
+		"name": "John Doe",
+		"email": "johndoe@email.com",
+		"account": []goFactory.Fields{
+			{"name": "first account"},
+			{"name": "second account"},
+			{"name": "third account"},
+		},
+	}).(*User)
+}
 ```
